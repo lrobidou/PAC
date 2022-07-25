@@ -1,3 +1,9 @@
-[submodule "BitMagic"]
-	path = BitMagic
+[submodule "thirdparty/BitMagic"]
+	path = thirdparty/BitMagic
 	url = https://github.com/tlk00/BitMagic
+[submodule "thirdparty/googletest"]
+	path = thirdparty/googletest
+	url = https://github.com/google/googletest
+[submodule "thirdparty/spdlog"]
+	path = thirdparty/spdlog
+	url = https://github.com/gabime/spdlog
