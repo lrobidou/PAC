@@ -7,3 +7,6 @@
 [submodule "thirdparty/spdlog"]
 	path = thirdparty/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "thirdparty/zstr"]
+	path = thirdparty/zstr
+	url = https://github.com/mateidavid/zstr
