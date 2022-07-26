@@ -41,7 +41,7 @@ void Best<T>::insert_key(const uint64_t key, uint level) {
 
 template <class T>
 void Best<T>::add_leaf() {
-    leaf_filters.push_back(new Bloom<T>(this));
+    leaf_filters.push_back(new Bloom<T>(this->size, this->number_hash_function));
 }
 
 template <class T>
@@ -163,7 +163,7 @@ void Best<T>::load_bf(uint64_t leaf_number) {
     zstr::ifstream in(prefix);
     leaf_filters.clear();
     for (uint i = 0; i < leaf_number; ++i) {
-        leaf_filters.push_back(new Bloom<T>(this));
+        leaf_filters.push_back(new Bloom<T>(this->size, this->number_hash_function));
     }
     for (uint i = 0; i < leaf_number; ++i) {
         uint32_t indiceBloom;
@@ -176,7 +176,7 @@ template <class T>
 void Best<T>::load(uint64_t leaf_number, bool double_index) {
     leaf_filters.clear();
     for (uint i = 0; i < leaf_number; ++i) {
-        leaf_filters.push_back(new Bloom<T>(this));
+        leaf_filters.push_back(new Bloom<T>(this->size, this->number_hash_function));
     }
     zstr::ifstream in(prefix);
     for (uint i = 0; i < leaf_number; ++i) {
@@ -197,7 +197,7 @@ void Best<T>::load(uint64_t leaf_number, bool double_index) {
 template <class T>
 void Best<T>::load(uint64_t leaf_number, bool double_index, vector<bool>* BBV) {
     leaf_filters.clear();
-    Bloom<T>* leon(new Bloom<T>(this));
+    Bloom<T>* leon(new Bloom<T>(this->size, this->number_hash_function));
     zstr::ifstream in(prefix);
     bm::bvector<>::enumerator en;
     bm::bvector<>::enumerator en_end;

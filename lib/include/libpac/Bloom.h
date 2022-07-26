@@ -21,7 +21,8 @@ template <class T>
 class Bloom {
    public:
     bm::bvector<>* BV;
-    Best<T>* father;
+    uint64_t _size;
+    uint _number_hash_function;
 
     void insert_key(uint64_t key);
     void optimize() {
@@ -32,7 +33,7 @@ class Bloom {
     uint64_t dump_disk(bm::serializer<bm::bvector<> >& bvs, zstr::ofstream* out, uint32_t i);
     void load_disk(zstr::ifstream* in);
     void free_ram();
-    Bloom(Best<T>* Ifather);
+    Bloom(uint64_t size, uint number_hash_function);
     ~Bloom() { delete BV; }
 };
 

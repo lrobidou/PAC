@@ -10,23 +10,22 @@ using namespace std;
 using namespace filesystem;
 
 template <class T>
-Bloom<T>::Bloom(Best<T>* Ifather) {
-    father = Ifather;
-    BV = new bm::bvector<>(father->size + 1, bm::BM_GAP);
+Bloom<T>::Bloom(uint64_t size, uint number_hash_function) : _size(size), _number_hash_function(number_hash_function) {
+    BV = new bm::bvector<>(_size + 1, bm::BM_GAP);
 }
 
 template <class T>
 void Bloom<T>::insert_key(uint64_t key) {
-    for (uint64_t i = 0; i < father->number_hash_function; ++i) {
-        uint64_t h = (hash_family(key, i)) & (father->size);
+    for (uint64_t i = 0; i < _number_hash_function; ++i) {
+        uint64_t h = (hash_family(key, i)) & (_size);
         (*BV)[h] = true;
     }
 }
 
 template <class T>
 bool Bloom<T>::check_key(uint64_t key) {
-    for (uint64_t i = 0; i < father->number_hash_function; ++i) {
-        uint64_t h = hash_family(key, i) & father->size;
+    for (uint64_t i = 0; i < _number_hash_function; ++i) {
+        uint64_t h = hash_family(key, i) & _size;
         if ((*BV)[h] == false) {
             return false;
         }
@@ -51,7 +50,7 @@ uint64_t Bloom<T>::dump_disk(bm::serializer<bm::bvector<> >& bvs, zstr::ofstream
 template <class T>
 void Bloom<T>::load_disk(zstr::ifstream* in) {
     if (BV == NULL) {
-        BV = new bm::bvector<>(father->size + 1, bm::BM_GAP);
+        BV = new bm::bvector<>(_size + 1, bm::BM_GAP);
     }
     uint64_t sz;
     in->read(reinterpret_cast<char*>(&sz), sizeof(sz));

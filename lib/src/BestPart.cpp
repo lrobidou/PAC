@@ -401,7 +401,8 @@ void BestPart<T>::insert_file(const string& filename, uint level, uint32_t indic
     zstr::ifstream in(filename);
     Bloom<T>* unique_filter;
     if (filter) {
-        unique_filter = new Bloom<T>(buckets[0]);
+        Best<T>* first = buckets[0];
+        unique_filter = new Bloom<T>(first->size, first->number_hash_function);
     }
     {
         string ref;
