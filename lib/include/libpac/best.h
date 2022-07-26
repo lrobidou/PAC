@@ -20,48 +20,49 @@ class Bloom;
 
 template <class T>
 class Best {
-   public:
-    vector<Bloom<T>*> leaf_filters;
-    string prefix;
-    bool filter;
-    ExponentialBloom<T>* trunk;
-    ExponentialBloom<T>* reverse_trunk;
-    uint K;
-    uint64_t size;
-    uint number_hash_function;
-    uint64_t number_bit_set;
-    uint64_t number_bit_set_abt;
-    uint64_t disk_space_used;
-    uint64_t leaf_number;
-    zstr::ofstream* out;
-    bool write;
+   private:
+    vector<Bloom<T>*> _leaf_filters;
+    string _prefix;
+    bool _filter;
+    ExponentialBloom<T>* _trunk;
+    ExponentialBloom<T>* _reverse_trunk;
+    uint _K;
+    uint64_t _size;
+    uint _number_hash_function;
+    uint64_t _number_bit_set;
+    uint64_t _number_bit_set_abt;
+    uint64_t _disk_space_used;
+    uint64_t _leaf_number;
+    zstr::ofstream* _out;
+    bool _write;
 
+   public:
     Best(const uint64_t Isize, const uint Inumber_hash_function, const uint Ik, const string Iprefix, bool Iwrite = true) {
-        K = Ik;
-        prefix = Iprefix;
-        write = Iwrite;
-        if (write) {
-            out = new zstr::ofstream(Iprefix, ios::trunc);
+        _K = Ik;
+        _prefix = Iprefix;
+        _write = Iwrite;
+        if (_write) {
+            _out = new zstr::ofstream(Iprefix, ios::trunc);
         }
-        size = Isize - 1;
-        number_hash_function = Inumber_hash_function;
-        trunk = NULL;
-        reverse_trunk = NULL;
-        number_bit_set_abt = number_bit_set = disk_space_used = 0;
+        _size = Isize - 1;
+        _number_hash_function = Inumber_hash_function;
+        _trunk = NULL;
+        _reverse_trunk = NULL;
+        _number_bit_set_abt = _number_bit_set = _disk_space_used = 0;
     }
 
     ~Best() {
-        if (trunk != NULL) {
-            delete trunk;
+        if (_trunk != NULL) {
+            delete _trunk;
         }
-        if (reverse_trunk != NULL) {
-            delete reverse_trunk;
+        if (_reverse_trunk != NULL) {
+            delete _reverse_trunk;
         }
-        for (uint i = 0; i < leaf_filters.size(); ++i) {
-            delete leaf_filters[i];
+        for (uint i = 0; i < _leaf_filters.size(); ++i) {
+            delete _leaf_filters[i];
         }
         if (write) {
-            delete out;
+            delete _out;
         } else {
         }
     }
@@ -95,6 +96,18 @@ class Best {
     void load(uint64_t leaf_number, bool double_index, vector<bool>* BBV);
     T query_key_max(const uint64_t key);
     T query_key_min(const uint64_t key);
+
+    // GETTERS
+    vector<Bloom<T>*> get_leaf_filters();
+    uint64_t get_size();
+    uint get_number_hash_function();
+    uint64_t get_number_bit_set_abt();
+    uint64_t get_disk_space_used();
+    uint64_t get_leaf_number();
+    zstr::ofstream* get_out();
+
+    // SETTERS
+    void set_leaf_number(uint64_t leaf_number);
 };
 
 template class Best<uint8_t>;

@@ -19,11 +19,12 @@ class Best;
 
 template <class T>
 class Bloom {
-   public:
-    bm::bvector<>* BV;
+   private:
     uint64_t _size;
     uint _number_hash_function;
 
+   public:
+    bm::bvector<>* BV;
     void insert_key(uint64_t key);
     void optimize() {
         BV->optimize(NULL, bm::bvector<>::opt_compress);

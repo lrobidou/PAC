@@ -273,11 +273,11 @@ void BestPart<T>::insert_previous_index(const string& filename) {
             in.read(reinterpret_cast<char*>(&sz), sizeof(sz));
             uint8_t* buff = new uint8_t[sz];
             in.read((char*)buff, sz);
-            buckets[i]->out->write(reinterpret_cast<const char*>(&ibloom), sizeof(ibloom));
-            buckets[i]->out->write(reinterpret_cast<const char*>(&sz), sizeof(sz));
-            buckets[i]->out->write((char*)&buff[0], sz);
+            buckets[i]->get_out()->write(reinterpret_cast<const char*>(&ibloom), sizeof(ibloom));
+            buckets[i]->get_out()->write(reinterpret_cast<const char*>(&sz), sizeof(sz));
+            buckets[i]->get_out()->write((char*)&buff[0], sz);
         }
-        buckets[i]->out->flush();
+        buckets[i]->get_out()->flush();
     }
     leaf_number += leaf_number_to_insert;
     cout << leaf_number << " datasets loaded from previous index" << endl;
@@ -323,7 +323,7 @@ uint64_t BestPart<T>::query_bucket2(const vector<pair<uint64_t, uint32_t> >& col
         for (uint32_t i = 0; i < colored_kmer.size(); ++i) {
             if (l >= minV[i] and l <= maxV[i]) {
                 sum++;
-                if (buckets[bucket_id]->leaf_filters[l]->check_key(colored_kmer[i].first)) {
+                if (buckets[bucket_id]->get_leaf_filters()[l]->check_key(colored_kmer[i].first)) {
 #pragma omp atomic
                     result[colored_kmer[i].second].second[l]++;
                 }
@@ -341,7 +341,7 @@ uint64_t BestPart<T>::query_bucket(const vector<pair<uint64_t, uint32_t> >& colo
     uint64_t sum(0);
     uint64_t size_partition = size / bucket_number;
     buckets[bucket_id]->load(leaf_number, use_double_index, BBV);
-    buckets[bucket_id]->leaf_number = leaf_number;
+    buckets[bucket_id]->set_leaf_number(leaf_number);
     //~ vector<uint32_t> minV(colored_kmer.size(),0);
     //~ uint32_t minimal_value(leaf_number),maximal_value(leaf_number-1);
     //~ vector<uint32_t> maxV(colored_kmer.size(),leaf_number-1);
@@ -402,7 +402,7 @@ void BestPart<T>::insert_file(const string& filename, uint level, uint32_t indic
     Bloom<T>* unique_filter;
     if (filter) {
         Best<T>* first = buckets[0];
-        unique_filter = new Bloom<T>(first->size, first->number_hash_function);
+        unique_filter = new Bloom<T>(first->get_size(), first->get_number_hash_function());
     }
     {
         string ref;
@@ -424,7 +424,7 @@ void BestPart<T>::insert_file(const string& filename, uint level, uint32_t indic
     for (uint i = 0; i < buckets.size(); ++i) {
         buckets[i]->optimize(level);
         omp_set_lock(&mutex_array[i]);  // TODO THE LOCK SHOULD NOT INCLUDE THE SERIALIZATION
-        buckets[i]->out->write(reinterpret_cast<const char*>(&indice_bloom), sizeof(indice_bloom));
+        buckets[i]->get_out()->write(reinterpret_cast<const char*>(&indice_bloom), sizeof(indice_bloom));
         buckets[i]->dump(level, bvs);
         omp_unset_lock(&mutex_array[i]);
     }
@@ -529,10 +529,10 @@ void BestPart<T>::index() {
 #pragma omp atomic
         number_bit_set += nbbs;
         buckets[i]->serialize();
-        nbbs = buckets[i]->disk_space_used;
+        nbbs = buckets[i]->get_disk_space_used();
 #pragma omp atomic
         disk_space_used += nbbs;
-        nbbs = buckets[i]->number_bit_set_abt;
+        nbbs = buckets[i]->get_number_bit_set_abt();
 #pragma omp atomic
         number_bit_set_abt += nbbs;
         delete buckets[i];
