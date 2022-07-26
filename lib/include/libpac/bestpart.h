@@ -124,7 +124,6 @@ class BestPart {
     }
 
     // LOW LEVEL FUNCTIONS
-    void change_level();
     void check_key_leaf(const uint64_t key, const uint level) const;
     uint64_t rcb(uint64_t min, uint64_t n) const;
     void updateK(uint64_t& min, char nuc) const;

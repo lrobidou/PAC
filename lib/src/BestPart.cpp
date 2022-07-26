@@ -124,13 +124,6 @@ void BestPart<T>::updateRCM(uint64_t& min, char nuc) const {
     min += (nuc2intrc(nuc) << (2 * large_minimizer_size - 2));
 }
 
-// template <class T>
-// void BestPart<T>::change_level() {
-//     for (uint32_t i = 0; i < bucket_number; ++i) {
-//         buckets[i]->change_level();
-//     }
-// }
-
 template <class T>
 vector<pair<vector<uint64_t>, uint64_t> > BestPart<T>::get_super_kmers(const string& ref) {
     vector<pair<vector<uint64_t>, uint64_t> > result;

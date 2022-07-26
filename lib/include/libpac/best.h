@@ -68,7 +68,6 @@ class Best {
 
     // LOW LEVEL FUNCTIONS
     void insert_key(const uint64_t key, uint level);
-    void change_level();
     void check_key_leaf(const uint64_t key, const uint level) const;
     uint64_t rcb(uint64_t min) const;
     void update_kmer(uint64_t& min, char nuc) const;
