@@ -6,38 +6,38 @@
 
 #include <filesystem>
 
-using namespace std;
-using namespace filesystem;
-
-template <class T>
-Bloom<T>::Bloom(uint64_t size, uint number_hash_function) : _size(size), _number_hash_function(number_hash_function) {
-    BV = new bm::bvector<>(_size + 1, bm::BM_GAP);
+Bloom::Bloom(uint64_t size, uint number_hash_function) : _size(size), _number_hash_function(number_hash_function), BV(_size + 1, bm::BM_GAP) {
 }
 
-template <class T>
-void Bloom<T>::insert_key(uint64_t key) {
+void Bloom::insert_key(uint64_t key) {
     for (uint64_t i = 0; i < _number_hash_function; ++i) {
-        uint64_t h = (hash_family(key, i)) & (_size);
-        (*BV)[h] = true;
+        uint64_t h = hash_family(key, i, _size);
+        BV[h] = true;
     }
 }
 
-template <class T>
-bool Bloom<T>::check_key(uint64_t key) {
+bool Bloom::check_key(uint64_t key) {
     for (uint64_t i = 0; i < _number_hash_function; ++i) {
-        uint64_t h = hash_family(key, i) & _size;
-        if ((*BV)[h] == false) {
+        uint64_t h = hash_family(key, i, _size);
+        if (BV[h] == false) {
             return false;
         }
     }
     return true;
 }
 
-template <class T>
-uint64_t Bloom<T>::dump_disk(bm::serializer<bm::bvector<> >& bvs, zstr::ofstream* out, uint32_t i) {
+const bm::bvector<>::enumerator Bloom::get_first() const {
+    return BV.first();
+}
+
+const bm::bvector<>::enumerator Bloom::get_end() const {
+    return BV.end();
+}
+
+uint64_t Bloom::dump_disk(bm::serializer<bm::bvector<> >& bvs, zstr::ofstream* out) {
     bm::serializer<bm::bvector<> >::buffer sbuf;
     unsigned char* buf = 0;
-    bvs.serialize(*(BV), sbuf);
+    bvs.serialize(BV, sbuf);
     buf = sbuf.data();
     uint64_t sz = sbuf.size();
     auto point2 = &buf[0];
@@ -47,20 +47,35 @@ uint64_t Bloom<T>::dump_disk(bm::serializer<bm::bvector<> >& bvs, zstr::ofstream
     return sz;
 }
 
-template <class T>
-void Bloom<T>::load_disk(zstr::ifstream* in) {
-    if (BV == NULL) {
-        BV = new bm::bvector<>(_size + 1, bm::BM_GAP);
-    }
+void Bloom::load_disk(zstr::ifstream* in) {
+    BV = bm::bvector<>(_size + 1, bm::BM_GAP);
     uint64_t sz;
     in->read(reinterpret_cast<char*>(&sz), sizeof(sz));
     uint8_t* buff = new uint8_t[sz];
     in->read((char*)buff, sz);
-    bm::deserialize(*(BV), buff);
+    bm::deserialize(BV, buff);
     delete[] buff;
 }
 
-template <class T>
-void Bloom<T>::free_ram() {
-    BV->reset();
+void Bloom::optimize() {
+    BV.optimize(NULL, bm::bvector<>::opt_compress);
+}
+
+void Bloom::free_ram() {
+    BV.reset();
+}
+
+uint64_t Bloom::get_filter_size() {
+    return BV.size();
+}
+
+bool Bloom::operator==(const Bloom& that) const {
+    return (
+        (this->_size == that._size) &&
+        (this->_number_hash_function == that._number_hash_function) &&
+        (this->BV == that.BV));
+}
+
+bool Bloom::operator!=(const Bloom& that) const {
+    return (!((*this) == that));
 }

@@ -6,11 +6,63 @@
 #include <sys/types.h>
 
 #include <cmath>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <vector>
 
 #include "zstr.hpp"
+
+uint64_t str2num(const std::string& str) {
+    uint64_t res(0);
+    for (uint64_t i(0); i < str.size(); i++) {
+        res <<= 2;
+        res += (str[i] / 2) % 4;
+    }
+    return res;
+}
+
+uint64_t revhash(uint64_t x) {
+    // return hash64shift(x);
+    x = ((x >> 32) ^ x) * 0xD6E8FEB86659FD93;
+    x = ((x >> 32) ^ x) * 0xD6E8FEB86659FD93;
+    x = ((x >> 32) ^ x);
+    return x;
+}
+
+uint64_t unrevhash(uint64_t x) {
+    return hash64shift(x);
+    x = ((x >> 32) ^ x) * 0xCFEE444D8B59A89B;
+    x = ((x >> 32) ^ x) * 0xCFEE444D8B59A89B;
+    x = ((x >> 32) ^ x);
+    return x;
+}
+
+// TODO CAN BE IMPROVED
+// rcb: reverse complement, binary
+uint64_t rcb(uint64_t min, uint64_t n) {
+    uint64_t res(0);
+    uint64_t offset(1);  // used like a mask
+    offset <<= (2 * n - 2);
+    for (uint i(0); i < n; ++i) {
+        res += (3 - (min % 4)) * offset;
+        min >>= 2;
+        offset >>= 2;
+    }
+    return res;
+}
+
+uint64_t canonize(uint64_t x, uint64_t n) {
+    return std::min(x, rcb(x, n));
+}
+
+void createPathIfNotExists(const std::string& path) {
+    // TODO is it recusrive ?
+    std::filesystem::path p{path};
+    if (!exists(p)) {
+        create_directory(p);
+    }
+}
 
 uint64_t nuc2int(char c) {
     switch (c) {
@@ -42,7 +94,7 @@ uint64_t nuc2intrc(char c) {
     return 0;
 }
 
-uint64_t str2numstrand(const string& str) {
+uint64_t str2numstrand(const std::string& str) {
     uint64_t res(0);
     for (uint i(0); i < str.size(); i++) {
         res <<= 2;
@@ -81,11 +133,11 @@ uint64_t str2numstrand(const string& str) {
 }
 
 // pretty printing
-string intToString(uint64_t n) {
+std::string intToString(uint64_t n) {
     if (n < 1000) {
-        return to_string(n);
+        return std::to_string(n);
     }
-    string end(to_string(n % 1000));
+    std::string end(std::to_string(n % 1000));
     if (end.size() == 3) {
         return intToString(n / 1000) + "," + end;
     }
@@ -123,66 +175,15 @@ uint64_t getMemorySelfMaxUsed() {
     return result;
 }
 
-uint64_t hash_family(uint64_t key, uint b) {
-    return hash64shift(key) + xorshift64(key) * b;
-}
-
-void Biogetline(zstr::ifstream* in, string& result, char type, uint K) {
-    string discard;
-    result.clear();
-    switch (type) {
-        case 'Q':
-            getline(*in, discard);
-            getline(*in, result);
-            getline(*in, discard);
-            getline(*in, discard);
-            break;
-        case 'A':
-            getline(*in, discard);
-            char c = in->peek();
-            while (c != '>' and c != EOF) {
-                getline(*in, discard);
-                result += discard;
-                c = in->peek();
-            }
-            break;
-    }
-    if (result.size() < K) {
-        result.clear();
-    }
-}
-
-void Biogetline(zstr::ifstream* in, string& result, char type, uint K, string& header) {
-    string discard;
-    result.clear();
-    switch (type) {
-        case 'Q':
-            getline(*in, header);
-            getline(*in, result);
-            getline(*in, discard);
-            getline(*in, discard);
-            break;
-        case 'A':
-            getline(*in, header);
-            char c = in->peek();
-            while (c != '>' and c != EOF) {
-                getline(*in, discard);
-                result += discard;
-                c = in->peek();
-            }
-            break;
-    }
-    if (result.size() < K) {
-        result.clear();
-        header.clear();
-    }
+uint64_t hash_family(uint64_t key, uint b, uint64_t max) {
+    return (hash64shift(key) + xorshift64(key) * b) % (max - 1);  // lrobidou: why & ?
 }
 
 uint64_t approx_power2(uint64_t n) {
     uint64_t lower(1 << asm_log2(n));
     uint64_t upper((uint64_t)1 << (uint64_t)ceil(log2(n)));
     if (lower != n) {
-        cout << intToString(n) << " is not a power of two, I will use " << intToString(upper) << " instead" << endl;
+        std::cout << intToString(n) << " is not a power of two, I will use " << intToString(upper) << " instead" << std::endl;
     }
     return upper;
 }
@@ -195,11 +196,11 @@ uint64_t asm_log2(const uint64_t x) {
     return y;
 }
 
-char get_data_type(const string& filename) {
-    if (filename.find(".fq") != string::npos) {
+char get_data_type(const std::string& filename) {
+    if (filename.find(".fq") != std::string::npos) {
         return 'Q';
     }
-    if (filename.find(".fastq") != string::npos) {
+    if (filename.find(".fastq") != std::string::npos) {
         return 'Q';
     }
     return 'A';
@@ -210,7 +211,7 @@ bool exists_test(const std::string& name) {
     return (stat(name.c_str(), &buffer) == 0);
 }
 
-int directory_exists(string& path) {
+int directory_exists(std::string& path) {
     struct stat info;
 
     int statRC = stat(path.c_str(), &info);
@@ -225,4 +226,53 @@ int directory_exists(string& path) {
     }
 
     return (info.st_mode & S_IFDIR) ? 1 : 0;
+}
+
+void Biogetline(zstr::ifstream* in, std::string& result, char type, uint K) {
+    std::string discard;
+    result.clear();
+    switch (type) {
+        case 'Q':
+            getline(*in, discard);
+            getline(*in, result);
+            getline(*in, discard);
+            getline(*in, discard);
+            break;
+        case 'A':
+            getline(*in, discard);
+            char c = in->peek();
+            while (c != '>' and c != EOF) {
+                getline(*in, discard);
+                result += discard;
+                c = in->peek();
+            }
+            break;
+    }
+    if (result.size() < K) {
+        result.clear();
+    }
+}
+
+std::tuple<std::string, std::string> Biogetline(zstr::ifstream* in, char type, uint K) {
+    std::string result;
+    std::string header;
+    std::string discard;
+    switch (type) {
+        case 'Q':
+            getline(*in, header);
+            getline(*in, result);
+            getline(*in, discard);
+            getline(*in, discard);
+            break;
+        case 'A':
+            getline(*in, header);
+            char c = in->peek();
+            while (c != '>' and c != EOF) {
+                getline(*in, discard);
+                result += discard;
+                c = in->peek();
+            }
+            break;
+    }
+    return {result, header};
 }

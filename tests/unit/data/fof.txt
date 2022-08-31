@@ -1,0 +1,2 @@
+KMC_kmers.txt
+KMC_kmers_xxxxxx.txt
