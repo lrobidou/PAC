@@ -10,3 +10,6 @@
 [submodule "thirdparty/zstr"]
 	path = thirdparty/zstr
 	url = https://github.com/mateidavid/zstr
+[submodule "thirdparty/robinHoodHashing"]
+	path = thirdparty/robinHoodHashing
+	url = https://github.com/martinus/robin-hood-hashing
