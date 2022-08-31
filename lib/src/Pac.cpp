@@ -6,7 +6,6 @@
 #include <cmath>
 #include <ctime>
 #include <filesystem>
-#include <fimpera-lib/finderec.hpp>
 #include <iostream>
 #include <libpac/Bucket.hpp>
 #include <libpac/Pac.hpp>
