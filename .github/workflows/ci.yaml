@@ -82,7 +82,7 @@ jobs:
           submodules: recursive
 
       - name: Dependencies
-        run: brew install zlib bash llvm
+        run: brew install zlib bash libomp
 
       - name: Configure
         shell: bash
