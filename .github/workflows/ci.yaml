@@ -82,7 +82,7 @@ jobs:
           submodules: recursive
 
       - name: Dependencies
-        run: brew install zlib bash
+        run: brew install zlib bash clang-omp
 
       - name: Configure
         shell: bash
